@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Block</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  .time {
+    width: 230px;
+    font-weight: bold;
+    font-size: 24px;
+    margin: 40px auto;
+    height: 30px;
+    line-height: 30px;
+  }
+  .box {
+    margin: 40px auto;
+    display: flex;
+    flex-wrap: wrap;
+    width: 270px;
+    perspective: 2000;
+    -webkit-perspective: 2000;
+  }
+  .box .block-box:nth-child(4n + 1) {
+    margin-left: 5px;
+  }
+  .box .block-box {
+    position: relative;
+    margin-top: 6px;
+    margin-right: 6px;
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+  .box .block-box div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    line-height: 60px;
+    color: #fff;
+    text-align: center;
+    background: slateblue;
+    perspective: 2000;
+    -webkit-perspective: 2000;
+    transition: all .4s;
+    transform: rotateY(180deg);
+  }
+  .box .block-box::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 60px;
+    height: 60px;
+    background: seagreen;
+    perspective: 2000;
+    -webkit-perspective: 2000;
+    backface-visibility: hidden;
+    transition: all .4s;
+  }
+  .box .block-show::after {
+    transform: rotateY(-180deg);
+  }
+  .box .block-show div {
+    transform: rotateY(0);
+  }
+  .mask-wrap {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+  }
+  .mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, .4);
+  }
+  .mask-wrap .btn {
+    position: relative;
+    width: 160px;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    font-size: 24px;
+    color: #fff;
+    background: slateblue;
+    border-radius: 24px;
+  }
+  .hide {
+    display: none;
+  }
+  .exit {
+    margin-top: 30px;
+  }
+  .mask-wrap .bg-green {
+    background: seagreen;
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="time" class="time">current time：00:00</div>
+    <div id="box" class="box"></div>
+  </div>
+  <div id="mask-wrap" class="mask-wrap">
+    <div class="mask"></div>
+    <div class="btn start">开始</div>
+    <div class="btn exit hide">退出</div>
+  </div>
+</body>
+<script>
+  "use strict";
+
+function _instanceof(left, right) { if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) { return !!right[Symbol.hasInstance](left); } else { return left instanceof right; } }
+
+function _classCallCheck(instance, Constructor) { if (!_instanceof(instance, Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Time = /*#__PURE__*/function () {
+  // timer
+  function Time() {
+    _classCallCheck(this, Time);
+
+    this.time = 0; // time
+  }
+
+  _createClass(Time, [{
+    key: "setTime",
+    value: function setTime() {
+      this.time++;
+    }
+  }, {
+    key: "getTime",
+    value: function getTime() {
+      var minute = Math.floor(this.time / 60);
+      var second = this.time - minute * 60;
+      return "".concat(this.formatTime(minute), ":").concat(this.formatTime(second));
+    }
+  }, {
+    key: "formatTime",
+    value: function formatTime(val) {
+      return +val < 10 ? "0".concat(val) : val;
+    }
+  }, {
+    key: "startTime",
+    value: function startTime() {
+      var _this = this;
+
+      Time.timer = setInterval(function () {
+        _this.setTime();
+
+        Time.timeEl.innerHTML = "current time\uFF1A".concat(_this.getTime());
+      }, 1000);
+    }
+  }], [{
+    key: "init",
+    value: function init() {
+      Time.timeEl.innerHTML = 'current time：00:00'; // init time
+    }
+  }, {
+    key: "clearTimer",
+    value: function clearTimer() {
+      clearInterval(Time.timer);
+      Time.timer = null;
+    }
+  }]);
+
+  return Time;
+}();
+
+_defineProperty(Time, "timer", null);
+
+_defineProperty(Time, "timeEl", document.getElementById('time'));
+
+var Global = /*#__PURE__*/function () {
+  // total block box list
+  // block count
+  function Global(count) {
+    _classCallCheck(this, Global);
+
+    Global.count = count || 16;
+  }
+
+  _createClass(Global, [{
+    key: "start",
+    value: function start(isFirst) {
+      for (var i = 0; i < Global.count / 2; i++) {
+        var blockInstance = new Block();
+        Global.blockBoxList.push(blockInstance.blockBox1, blockInstance.blockBox2);
+      }
+
+      if (isFirst) {
+        this.initBtn();
+      }
+
+      this.addBlock();
+    }
+  }, {
+    key: "restart",
+    value: function restart() {
+      Time.init();
+      Global.init();
+      Block.init();
+      this.start(false);
+    }
+  }, {
+    key: "initBtn",
+    value: function initBtn() {
+      var that = this;
+
+      Global.maskWrap.children[1].onclick = function () {
+        if (this.innerHTML === '重新开始') {
+          // restart
+          that.restart();
+        }
+
+        new Time().startTime();
+        Global.maskWrap.classList.add('hide');
+      };
+
+      Global.maskWrap.children[2].onclick = function () {
+        window.history.back() // page back
+      };
+    }
+  }, {
+    key: "addBlock",
+    value: function addBlock() {
+      Global.blockBoxList.sort(function (a, b) {
+        return Math.random() - 0.5;
+      });
+
+      for (var i = 0; i < Global.blockBoxList.length; i++) {
+        Global.box.appendChild(Global.blockBoxList[i]);
+      }
+    }
+  }], [{
+    key: "init",
+    value: function init() {
+      // init variable
+      Global.box.innerHTML = ''; // remove all childnodes
+
+      Global.blockBoxList = []; // clear blockBoxList
+    }
+  }, {
+    key: "over",
+    value: function over() {
+      // over
+      Time.clearTimer();
+      setTimeout(function () {
+        Global.maskWrap.classList.remove('hide');
+        var startBtn = Global.maskWrap.children[1];
+        var exitBtn = Global.maskWrap.lastElementChild;
+        startBtn.innerHTML = '重新开始';
+        startBtn.classList.add('bg-green');
+        exitBtn.classList.remove('hide'); // ignore blank text node
+
+        exitBtn.classList.add('bg-green');
+      }, 500);
+    }
+  }]);
+
+  return Global;
+}();
+
+_defineProperty(Global, "box", document.getElementById('box'));
+
+_defineProperty(Global, "maskWrap", document.getElementById('mask-wrap'));
+
+_defineProperty(Global, "blockBoxList", []);
+
+_defineProperty(Global, "count", 0);
+
+var Block = /*#__PURE__*/function () {
+  // product two block element
+  // current show content
+  // previous show block element
+  function Block() {
+    _classCallCheck(this, Block);
+
+    this.blockBox1 = document.createElement('div');
+    this.blockBox2 = document.createElement('div');
+    this.el1 = document.createElement('div');
+    this.el2 = document.createElement('div');
+    this.blockBox1.appendChild(this.el1);
+    this.blockBox2.appendChild(this.el2);
+    this.initClass();
+    this.initFunc();
+    this.initContent();
+  }
+
+  _createClass(Block, [{
+    key: "initClass",
+    value: function initClass() {
+      // add initial class
+      this.blockBox1.classList.add('block-box');
+      this.blockBox2.classList.add('block-box');
+    }
+  }, {
+    key: "initFunc",
+    value: function initFunc() {
+      // add function
+      this.addFunc(this.blockBox1);
+      this.addFunc(this.blockBox2);
+    }
+  }, {
+    key: "addFunc",
+    value: function addFunc(blockBox) {
+      var that = this;
+
+      blockBox.onclick = function () {
+        var classList = this.classList;
+
+        if (!classList.contains('block-show')) {
+          classList.add('block-show');
+
+          if (!Block.showBlockList.length) {
+            // first element
+            Block.prevBlock = this;
+            Block.showBlockList.push(this.lastChild.innerHTML);
+          } else if (Block.prevBlock) {
+            if (Block.prevBlock.lastChild.innerHTML !== this.lastChild.innerHTML) {
+              // different
+              Block.prevBlock.classList.remove('block-show');
+              Block.prevBlock = this;
+            } else {
+              // same
+              Block.showBlockList.push(this.lastChild.innerHTML);
+              Block.prevBlock = null;
+            }
+          } else {
+            Block.prevBlock = this;
+            Block.showBlockList.push(this.lastChild.innerHTML);
+          }
+
+          if (Block.showBlockList.length == Global.blockBoxList.length) {
+            // over
+            Global.over();
+          }
+        }
+      };
+    }
+  }, {
+    key: "initContent",
+    value: function initContent() {
+      var list = Block.contentList.filter(function (val) {
+        return !Block.usedContent.includes(val);
+      });
+      var content = list[parseInt(Math.random() * list.length)]; // random content
+
+      this.el1.innerHTML = content;
+      this.el2.innerHTML = content;
+      Block.usedContent.push(content);
+    }
+  }, {
+    key: "setContent",
+    value: function setContent(val) {
+      this.el.innerHTML = val;
+    }
+  }], [{
+    key: "init",
+    value: function init() {
+      // init variable
+      Block.usedContent = [];
+      Block.showBlockList = [];
+      Block.prevBlock = null;
+    }
+  }]);
+
+  return Block;
+}();
+
+_defineProperty(Block, "usedContent", []);
+
+_defineProperty(Block, "showBlockList", []);
+
+_defineProperty(Block, "prevBlock", null);
+
+_defineProperty(Block, "contentList", Array.from({
+  length: 26
+}, function (item, index) {
+  return String.fromCharCode(index + 65);
+}));
+
+new Global(16).start(true);
+</script>

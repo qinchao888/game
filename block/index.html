@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Block</title>
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  .time {
+    width: 230px;
+    font-weight: bold;
+    font-size: 24px;
+    margin: 40px auto;
+    height: 30px;
+    line-height: 30px;
+  }
+  .box {
+    margin: 40px auto;
+    display: flex;
+    flex-wrap: wrap;
+    width: 270px;
+    perspective: 1000;
+    -webkit-perspective: 1000;
+  }
+  .box .block-box:nth-child(4n + 1) {
+    margin-left: 5px;
+  }
+  .box .block-box {
+    position: relative;
+    margin-top: 6px;
+    margin-right: 6px;
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+  .box .block-box div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    line-height: 60px;
+    color: #fff;
+    text-align: center;
+    background: slateblue;
+    perspective: 1000;
+    -webkit-perspective: 1000;
+    transition: all .6s;
+    transform: rotateY(180deg);
+  }
+  .box .block-box::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 60px;
+    height: 60px;
+    background: seagreen;
+    perspective: 1000;
+    -webkit-perspective: 1000;
+    backface-visibility: hidden;
+    transition: all .6s;
+  }
+  .box .block-show::after {
+    transform: rotateY(-180deg);
+  }
+  .box .block-show div {
+    transform: rotateY(0);
+  }
+  .mask-wrap {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+  }
+  .mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, .4);
+  }
+  .mask-wrap .btn {
+    position: relative;
+    width: 160px;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    font-size: 24px;
+    color: #fff;
+    background: slateblue;
+    border-radius: 24px;
+  }
+  .hide {
+    display: none;
+  }
+  .exit {
+    margin-top: 30px;
+  }
+  .mask-wrap .bg-green {
+    background: seagreen;
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="time" class="time">current time：00:00</div>
+    <div id="box" class="box"></div>
+  </div>
+  <div id="mask-wrap" class="mask-wrap">
+    <div class="mask"></div>
+    <div class="btn start">开始</div>
+    <div class="btn exit hide">退出</div>
+  </div>
+</body>
+<script>
+class Time { // timer
+  static timer = null
+  static timeEl = document.getElementById('time')
+  constructor () {
+    this.time = 0 // time
+  }
+  static init () {
+    Time.timeEl.innerHTML = 'current time：00:00' // init time
+  }
+  setTime () {
+    this.time++
+  }
+  getTime () {
+    const minute = Math.floor(this.time / 60)
+    const second = this.time - minute * 60
+    return `${this.formatTime(minute)}:${this.formatTime(second)}`
+  }
+  formatTime (val) {
+    return +val < 10 ? `0${val}` : val
+  }
+  startTime () {
+    Time.timer = setInterval(() => {
+      this.setTime()
+      Time.timeEl.innerHTML = `current time：${this.getTime()}`
+    }, 1000)
+  }
+  static clearTimer () {
+    clearInterval(Time.timer)
+    Time.timer = null
+  }
+}
+class Global {
+  static box = document.getElementById('box')
+  static maskWrap = document.getElementById('mask-wrap')
+  static blockBoxList = [] // total block box list
+  static count = 0 // block count
+  constructor (count) {
+    Global.count = count || 16
+  }
+  static init () { // init variable
+    Global.box.innerHTML = '' // remove all childnodes
+    Global.blockBoxList = [] // clear blockBoxList
+  }
+  start (isFirst) {
+    for (let i = 0; i < Global.count / 2; i++) {
+      const blockInstance = new Block()
+      Global.blockBoxList.push(blockInstance.blockBox1, blockInstance.blockBox2)
+    }
+    if (isFirst) {
+      this.initBtn()
+    }
+    this.addBlock()
+  }
+  static over () { // over
+    Time.clearTimer()
+    setTimeout(() => {
+      Global.maskWrap.classList.remove('hide')
+      const startBtn = Global.maskWrap.children[1]
+      const exitBtn = Global.maskWrap.lastElementChild
+      startBtn.innerHTML = '重新开始'
+      startBtn.classList.add('bg-green')
+      exitBtn.classList.remove('hide') // ignore blank text node
+      exitBtn.classList.add('bg-green')
+    }, 500)
+  }
+  restart () {
+    Time.init()
+    Global.init()
+    Block.init()
+    this.start(false)
+  }
+  initBtn () {
+    const that = this
+    Global.maskWrap.children[1].onclick = function () {
+      if (this.innerHTML === '重新开始') { // restart
+        that.restart()
+      }
+      new Time().startTime()
+      Global.maskWrap.classList.add('hide')
+    }
+    Global.maskWrap.children[2].onclick = function () {
+      window.history.back() // page back
+    }
+  }
+  addBlock () {
+    Global.blockBoxList.sort((a, b) =>  Math.random() - 0.5)
+    for (let i = 0; i < Global.blockBoxList.length; i++) {
+      Global.box.appendChild(Global.blockBoxList[i])
+    }
+  }
+}
+class Block { // product two block element
+  static usedContent = []
+  static showBlockList = [] // current show content
+  static prevBlock = null // previous show block element
+  static contentList = Array.from({length: 26}, (item, index) => String.fromCharCode(index + 65))
+  constructor () {
+    this.blockBox1 = document.createElement('div')
+    this.blockBox2 = document.createElement('div')
+    this.el1 = document.createElement('div')
+    this.el2 = document.createElement('div')
+    this.blockBox1.appendChild(this.el1)
+    this.blockBox2.appendChild(this.el2)
+    this.initClass()
+    this.initFunc()
+    this.initContent()
+  }
+  static init () { // init variable
+    Block.usedContent = []
+    Block.showBlockList = []
+    Block.prevBlock = null
+  }
+  initClass () { // add initial class
+    this.blockBox1.classList.add('block-box')
+    this.blockBox2.classList.add('block-box')
+  }
+  initFunc () { // add function
+    this.addFunc(this.blockBox1)
+    this.addFunc(this.blockBox2)
+  }
+  addFunc (blockBox) {
+    const that = this
+    blockBox.onclick = function () {
+      const classList = this.classList
+      if (!classList.contains('block-show')) {
+        classList.add('block-show')
+        if (!Block.showBlockList.length) { // first element
+          Block.prevBlock = this
+          Block.showBlockList.push(this.lastChild.innerHTML)
+        } else if (Block.prevBlock) {
+          if  (Block.prevBlock.lastChild.innerHTML !== this.lastChild.innerHTML) { // different
+            Block.prevBlock.classList.remove('block-show')
+            Block.prevBlock = this
+          } else { // same
+            Block.showBlockList.push(this.lastChild.innerHTML)
+            Block.prevBlock = null
+          }
+        } else {
+          Block.prevBlock = this
+          Block.showBlockList.push(this.lastChild.innerHTML)
+        }
+        if (Block.showBlockList.length == Global.blockBoxList.length) { // over
+          Global.over()
+        }
+      }
+    }
+  }
+  initContent () {
+    const list = Block.contentList.filter(val => !Block.usedContent.includes(val))
+    const content = list[parseInt(Math.random() * list.length)] // random content
+    this.el1.innerHTML = content
+    this.el2.innerHTML = content
+    Block.usedContent.push(content)
+  }
+  setContent (val) {
+    this.el.innerHTML = val
+  }
+}
+new Global(16).start(true)
+</script>
+</html>
