@@ -21,19 +21,25 @@
     margin: 40px auto;
     display: flex;
     flex-wrap: wrap;
-    width: 270px;
-    perspective: 2000;
-    -webkit-perspective: 2000;
+    /* width: 270px; */
+    /* width: 282px; */
+    perspective: 1000;
+    -webkit-perspective: 1000;
   }
-  .box .block-box:nth-child(4n + 1) {
-    margin-left: 5px;
-  }
+  /* .box .block-box:nth-child(4n + 1) {
+    margin-left: 6px;
+  } */
+  /* .box .block-box:nth-child(6n + 1) {
+    margin-left: 6px;
+  } */
   .box .block-box {
     position: relative;
     margin-top: 6px;
     margin-right: 6px;
-    width: 60px;
-    height: 60px;
+    /* width: 60px;
+    height: 60px; */
+    /* width: 40px;
+    height: 40px; */
     font-size: 24px;
   }
   .box .block-box div {
@@ -42,13 +48,14 @@
     left: 0;
     right: 0;
     bottom: 0;
-    line-height: 60px;
+    /* line-height: 60px; */
+    /* line-height: 40px; */
     color: #fff;
     text-align: center;
     background: slateblue;
-    perspective: 2000;
-    -webkit-perspective: 2000;
-    transition: all .4s;
+    perspective: 1000;
+    -webkit-perspective: 1000;
+    transition: all .6s;
     transform: rotateY(180deg);
   }
   .box .block-box::after {
@@ -57,13 +64,15 @@
     top: 0;
     left: 0;
     display: block;
-    width: 60px;
-    height: 60px;
+    /* width: 60px;
+    height: 60px; */
+    /* width: 40px;
+    height: 40px; */
     background: seagreen;
-    perspective: 2000;
-    -webkit-perspective: 2000;
+    perspective: 1000;
+    -webkit-perspective: 1000;
     backface-visibility: hidden;
-    transition: all .4s;
+    transition: all .6s;
   }
   .box .block-show::after {
     transform: rotateY(-180deg);
@@ -104,7 +113,7 @@
   .hide {
     display: none;
   }
-  .exit {
+  .other, .exit {
     margin-top: 30px;
   }
   .mask-wrap .bg-green {
@@ -120,6 +129,7 @@
   <div id="mask-wrap" class="mask-wrap">
     <div class="mask"></div>
     <div class="btn start">开始</div>
+    <div class="btn other hide">挑战6*6</div>
     <div class="btn exit hide">退出</div>
   </div>
 </body>
