@@ -124,7 +124,7 @@
   </div>
 </body>
 <script>
-  "use strict";
+"use strict";
 
 function _instanceof(left, right) { if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) { return !!right[Symbol.hasInstance](left); } else { return left instanceof right; } }
 
@@ -204,6 +204,9 @@ var Global = /*#__PURE__*/function () {
   _createClass(Global, [{
     key: "start",
     value: function start(isFirst) {
+      var difficulty = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+      this.initGlobalCss(difficulty);
+
       for (var i = 0; i < Global.count / 2; i++) {
         var blockInstance = new Block();
         Global.blockBoxList.push(blockInstance.blockBox1, blockInstance.blockBox2);
@@ -217,11 +220,12 @@ var Global = /*#__PURE__*/function () {
     }
   }, {
     key: "restart",
-    value: function restart() {
+    value: function restart(difficulty) {
+      this.deleteCssRule();
       Time.init();
       Global.init();
       Block.init();
-      this.start(false);
+      this.start(false, difficulty);
     }
   }, {
     key: "initBtn",
@@ -231,7 +235,7 @@ var Global = /*#__PURE__*/function () {
       Global.maskWrap.children[1].onclick = function () {
         if (this.innerHTML === '重新开始') {
           // restart
-          that.restart();
+          that.restart(1);
         }
 
         new Time().startTime();
@@ -239,8 +243,53 @@ var Global = /*#__PURE__*/function () {
       };
 
       Global.maskWrap.children[2].onclick = function () {
-        window.history.back() // page back
+        Global.count = 36;
+        that.restart(2);
+        new Time().startTime();
+        Global.maskWrap.classList.add('hide');
       };
+
+      Global.maskWrap.lastElementChild.onclick = function () {
+        window.history.back(); // page back
+      };
+    }
+  }, {
+    key: "initGlobalCss",
+    value: function initGlobalCss(difficulty) {
+      // initial global css
+      if (difficulty === 1) {
+        console.log(document.styleSheets[0].cssRules.length);
+        var boxRuleIndex = document.styleSheets[0].insertRule('.box { width: 270px; }', 0);
+        var blockBoxRuleIndex1 = document.styleSheets[0].insertRule('.box .block-box:nth-child(4n + 1) { margin-left: 6px; }', 1);
+        var blockBoxRuleIndex2 = document.styleSheets[0].insertRule('.box .block-box { width: 60px; height: 60px; }', 2);
+        var divRuleIndex = document.styleSheets[0].insertRule('.box .block-box div { line-height: 60px; }', 3);
+        var afterRuleIndex = document.styleSheets[0].insertRule('.box .block-box::after { width: 60px; height: 60px; }', 4);
+        console.log(document.styleSheets[0].cssRules.length);
+      } else {
+        var _boxRuleIndex = document.styleSheets[0].insertRule('.box { width: 282px; }', 0);
+
+        var _blockBoxRuleIndex = document.styleSheets[0].insertRule('.box .block-box:nth-child(6n + 1) { margin-left: 6px; }', 1);
+
+        var _blockBoxRuleIndex2 = document.styleSheets[0].insertRule('.box .block-box { width: 40px; height: 40px; }', 2);
+
+        var _divRuleIndex = document.styleSheets[0].insertRule('.box .block-box div { line-height: 40px; }', 3);
+
+        var _afterRuleIndex = document.styleSheets[0].insertRule('.box .block-box::after { width: 40px; height: 40px; }', 4);
+      }
+    }
+  }, {
+    key: "deleteCssRule",
+    value: function deleteCssRule() {
+      // delete css rule
+      console.log(document.styleSheets[0].cssRules.length); // be careful about order of the rules if you delete
+
+      document.styleSheets[0].deleteRule(4);
+      document.styleSheets[0].deleteRule(3);
+      document.styleSheets[0].deleteRule(2);
+      document.styleSheets[0].deleteRule(1);
+      document.styleSheets[0].deleteRule(0);
+      console.log(document.styleSheets[0].cssRules.length);
+      console.log(document.styleSheets[0].cssRules);
     }
   }, {
     key: "addBlock",
@@ -269,9 +318,12 @@ var Global = /*#__PURE__*/function () {
       setTimeout(function () {
         Global.maskWrap.classList.remove('hide');
         var startBtn = Global.maskWrap.children[1];
+        var otherBtn = Global.maskWrap.children[2];
         var exitBtn = Global.maskWrap.lastElementChild;
         startBtn.innerHTML = '重新开始';
         startBtn.classList.add('bg-green');
+        otherBtn.classList.remove('hide');
+        otherBtn.classList.add('bg-green');
         exitBtn.classList.remove('hide'); // ignore blank text node
 
         exitBtn.classList.add('bg-green');
@@ -387,7 +439,8 @@ var Block = /*#__PURE__*/function () {
   }]);
 
   return Block;
-}();
+}(); // new Global(4).start(true) // 4 * 4
+
 
 _defineProperty(Block, "usedContent", []);
 
@@ -401,5 +454,6 @@ _defineProperty(Block, "contentList", Array.from({
   return String.fromCharCode(index + 65);
 }));
 
-new Global(16).start(true);
+new Global(16).start(true); // 4 * 4
+// new Global(36).start(true, 2) // 6 * 6
 </script>

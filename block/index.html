@@ -21,19 +21,25 @@
     margin: 40px auto;
     display: flex;
     flex-wrap: wrap;
-    width: 270px;
+    /* width: 270px; */
+    /* width: 282px; */
     perspective: 1000;
     -webkit-perspective: 1000;
   }
-  .box .block-box:nth-child(4n + 1) {
-    margin-left: 5px;
-  }
+  /* .box .block-box:nth-child(4n + 1) {
+    margin-left: 6px;
+  } */
+  /* .box .block-box:nth-child(6n + 1) {
+    margin-left: 6px;
+  } */
   .box .block-box {
     position: relative;
     margin-top: 6px;
     margin-right: 6px;
-    width: 60px;
-    height: 60px;
+    /* width: 60px;
+    height: 60px; */
+    /* width: 40px;
+    height: 40px; */
     font-size: 24px;
   }
   .box .block-box div {
@@ -42,7 +48,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    line-height: 60px;
+    /* line-height: 60px; */
+    /* line-height: 40px; */
     color: #fff;
     text-align: center;
     background: slateblue;
@@ -57,8 +64,10 @@
     top: 0;
     left: 0;
     display: block;
-    width: 60px;
-    height: 60px;
+    /* width: 60px;
+    height: 60px; */
+    /* width: 40px;
+    height: 40px; */
     background: seagreen;
     perspective: 1000;
     -webkit-perspective: 1000;
@@ -104,7 +113,7 @@
   .hide {
     display: none;
   }
-  .exit {
+  .other, .exit {
     margin-top: 30px;
   }
   .mask-wrap .bg-green {
@@ -120,6 +129,7 @@
   <div id="mask-wrap" class="mask-wrap">
     <div class="mask"></div>
     <div class="btn start">开始</div>
+    <div class="btn other hide">挑战6*6</div>
     <div class="btn exit hide">退出</div>
   </div>
 </body>
@@ -167,7 +177,8 @@ class Global {
     Global.box.innerHTML = '' // remove all childnodes
     Global.blockBoxList = [] // clear blockBoxList
   }
-  start (isFirst) {
+  start (isFirst, difficulty = 1) {
+    this.initGlobalCss(difficulty)
     for (let i = 0; i < Global.count / 2; i++) {
       const blockInstance = new Block()
       Global.blockBoxList.push(blockInstance.blockBox1, blockInstance.blockBox2)
@@ -182,31 +193,72 @@ class Global {
     setTimeout(() => {
       Global.maskWrap.classList.remove('hide')
       const startBtn = Global.maskWrap.children[1]
+      const otherBtn = Global.maskWrap.children[2]
       const exitBtn = Global.maskWrap.lastElementChild
       startBtn.innerHTML = '重新开始'
       startBtn.classList.add('bg-green')
+      otherBtn.classList.remove('hide')
+      otherBtn.classList.add('bg-green')
       exitBtn.classList.remove('hide') // ignore blank text node
       exitBtn.classList.add('bg-green')
     }, 500)
   }
-  restart () {
+  restart (difficulty) {
+    this.deleteCssRule()
     Time.init()
     Global.init()
     Block.init()
-    this.start(false)
+    this.start(false, difficulty)
   }
   initBtn () {
     const that = this
     Global.maskWrap.children[1].onclick = function () {
       if (this.innerHTML === '重新开始') { // restart
-        that.restart()
+        that.restart(1)
       }
       new Time().startTime()
       Global.maskWrap.classList.add('hide')
     }
     Global.maskWrap.children[2].onclick = function () {
+      Global.count = 36
+      that.restart(2)
+      new Time().startTime()
+      Global.maskWrap.classList.add('hide')
+    }
+    Global.maskWrap.lastElementChild.onclick = function () {
       window.history.back() // page back
     }
+  }
+  initGlobalCss (difficulty) { // initial global css
+    if (difficulty === 1) {
+    console.log(document.styleSheets[0].cssRules.length)
+
+      const boxRuleIndex = document.styleSheets[0].insertRule('.box { width: 270px; }', 0)
+      const blockBoxRuleIndex1 = document.styleSheets[0].insertRule('.box .block-box:nth-child(4n + 1) { margin-left: 6px; }', 1)
+      const blockBoxRuleIndex2 = document.styleSheets[0].insertRule('.box .block-box { width: 60px; height: 60px; }', 2)
+      const divRuleIndex = document.styleSheets[0].insertRule('.box .block-box div { line-height: 60px; }', 3)
+      const afterRuleIndex = document.styleSheets[0].insertRule('.box .block-box::after { width: 60px; height: 60px; }', 4)
+    console.log(document.styleSheets[0].cssRules.length)
+
+    } else {
+      const boxRuleIndex = document.styleSheets[0].insertRule('.box { width: 282px; }', 0)
+      const blockBoxRuleIndex1 = document.styleSheets[0].insertRule('.box .block-box:nth-child(6n + 1) { margin-left: 6px; }', 1)
+      const blockBoxRuleIndex2 = document.styleSheets[0].insertRule('.box .block-box { width: 40px; height: 40px; }', 2)
+      const divRuleIndex = document.styleSheets[0].insertRule('.box .block-box div { line-height: 40px; }', 3)
+      const afterRuleIndex = document.styleSheets[0].insertRule('.box .block-box::after { width: 40px; height: 40px; }', 4)
+    }
+  }
+  deleteCssRule () { // delete css rule
+    console.log(document.styleSheets[0].cssRules.length)
+    // be careful about order of the rules if you delete
+    document.styleSheets[0].deleteRule(4)
+    document.styleSheets[0].deleteRule(3)
+    document.styleSheets[0].deleteRule(2)
+    document.styleSheets[0].deleteRule(1)
+    document.styleSheets[0].deleteRule(0)
+    console.log(document.styleSheets[0].cssRules.length)
+    console.log(document.styleSheets[0].cssRules)
+
   }
   addBlock () {
     Global.blockBoxList.sort((a, b) =>  Math.random() - 0.5)
@@ -282,6 +334,8 @@ class Block { // product two block element
     this.el.innerHTML = val
   }
 }
-new Global(16).start(true)
+// new Global(4).start(true) // 4 * 4
+new Global(16).start(true) // 4 * 4
+// new Global(36).start(true, 2) // 6 * 6
 </script>
 </html>
